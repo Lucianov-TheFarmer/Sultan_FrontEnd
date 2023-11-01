@@ -3,20 +3,35 @@
     <head></head>
     <body>
       <header>
-        <h2 class="logo">Gandalf</h2>
+        <h2 class="logo">Sultan</h2>
         <div class="search-box">
           <span class="icon">
             <ion-icon name="search-outline"></ion-icon>
           </span>
           <input type="text" />
         </div>
-
-        <nav class="navigation">
-          <a v-on:click="goHome" href="#">Home</a>
-          <a v-on:click="goAbout" href="#">Categorias</a>
-          <a v-on:click="goServices" href="#">Contato</a>
-          <a v-on:click="goContact" href="#">Sobre</a>
-          <button v-on:click="goLogin" class="bthLogin-popup">Login</button>
+        <nav role="navigation" class="primary-navigation">
+          <ul>
+            <li><a v-on:click="goHome">Home</a></li>
+            <li>
+              <a>Categorias &dtrif;</a>
+              <ul class="dropdown">
+                <li><a href="#">Veículos</a></li>
+                <li><a href="#">Supermercado</a></li>
+                <li><a href="#">Tecnologia</a></li>
+                <li><a href="#">Casa e móveis</a></li>
+                <li><a href="#">Esportes e fitness</a></li>
+                <li><a href="#">Construção</a></li>
+                <li><a href="#">Saúde</a></li>
+                <li><a href="#">Moda</a></li>
+              </ul>
+            </li>
+            <li><a v-on:click="goSobre">Sobre</a></li>
+            <li><a v-on:click="goContato">Contato</a></li>
+            <li>
+              <button v-on:click="goLogin" class="bthLogin-popup">Login</button>
+            </li>
+          </ul>
         </nav>
       </header>
       <div class="container">
@@ -169,14 +184,13 @@ export default {
     goHome() {
       console.log("Go Home");
     },
-    goAbout() {
-      console.log("Go About");
+    goContato() {
+      console.log("Go Contato");
+      this.$router.push("/contato");
     },
-    goServices() {
-      console.log("Go Services");
-    },
-    goContact() {
-      console.log("Go Contact");
+    goSobre() {
+      console.log("Go Contato");
+      this.$router.push("/sobre");
     },
     goLogin() {
       const wrapper = document.querySelector(".wrapper");
@@ -197,6 +211,11 @@ export default {
       const wrapper = document.querySelector(".wrapper");
       wrapper.classList.remove("active-popup");
     },
+  },
+  data() {
+    return {
+      showDropdown: false,
+    };
   },
 };
 </script>
@@ -226,7 +245,7 @@ header {
   top: 0;
   left: 0;
   width: 100%;
-  padding: 20px 100px;
+  padding: 20px 60px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -237,6 +256,7 @@ header {
   font-size: 2em;
   color: #ffffff;
   user-select: none;
+  padding: 0 25px 0 0;
 }
 
 .search-box {
@@ -265,35 +285,15 @@ header {
   color: #ffffff;
 }
 
-.navigation a {
-  position: relative;
-  font-size: 1.1em;
-  color: #ffffff;
-  text-decoration: none;
-  font-weight: 500;
-  margin-left: 40px;
+nav.primary-navigation {
+  margin: 0 auto;
+  display: block;
+  padding: 0 0 0 50px;
+  text-align: center;
+  font-size: 16px;
 }
 
-.navigation a::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  bottom: -6px;
-  width: 100%;
-  height: 3px;
-  background: #ffffff;
-  border-radius: 5px;
-  transform-origin: right;
-  transform: scaleX(0);
-  transition: transform 0.5s;
-}
-
-.navigation a:hover::after {
-  transform-origin: left;
-  transform: scaleX(1);
-}
-
-.navigation .bthLogin-popup {
+nav.primary-navigation ul li button {
   width: 130px;
   height: 50px;
   background: transparent;
@@ -308,9 +308,78 @@ header {
   transition: 0.5s;
 }
 
-.navigation .bthLogin-popup:hover {
+nav.primary-navigation ul li button:hover {
   background: #ffffff;
   color: #162938;
+}
+
+nav.primary-navigation ul li {
+  list-style: none;
+  margin: 0 auto;
+  display: inline-block;
+  padding: 0 20px;
+  position: relative;
+  text-decoration: none;
+  text-align: center;
+}
+nav.primary-navigation li a {
+  position: relative;
+  font-size: 1.1em;
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 500;
+}
+nav.primary-navigation li a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -6px;
+  width: 0;
+  height: 3px;
+  background: #ffffff;
+  transition: width 0.3s;
+}
+
+nav.primary-navigation li a:hover::after {
+  width: 100%;
+}
+
+nav.primary-navigation ul li ul {
+  visibility: hidden;
+  opacity: 0;
+  position: absolute;
+  padding-left: 0;
+  top: 130%;
+  left: 0;
+  display: none;
+  background: #333;
+  border-radius: 4px;
+}
+nav.primary-navigation ul li:hover > ul,
+nav.primary-navigation ul li ul:hover {
+  visibility: visible;
+  opacity: 1;
+  display: block;
+  min-width: 250px;
+  text-align: left;
+  padding-top: 20px;
+}
+nav.primary-navigation ul li ul li {
+  clear: both;
+  width: 100%;
+  text-align: left;
+  margin-bottom: 20px;
+  border-style: none;
+}
+nav.primary-navigation ul li ul li a:hover {
+  padding-left: 10px;
+  border-left: 2px solid #3ca0e7;
+  color: #3ca0e7;
+  transition: all 0.3s ease;
+}
+
+ul li ul li a {
+  transition: all 0.5s ease;
 }
 
 .wrapper {
