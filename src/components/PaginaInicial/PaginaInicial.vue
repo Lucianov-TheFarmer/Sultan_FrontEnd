@@ -12,7 +12,7 @@
         </div>
         <nav role="navigation" class="primary-navigation">
           <ul>
-            <li><a v-on:click="goHome">Home</a></li>
+            <li><a v-on:click="goHome">Projetos</a></li>
             <li>
               <a>Categorias &dtrif;</a>
               <ul class="dropdown">
@@ -26,7 +26,7 @@
                 <li><a href="#">Moda</a></li>
               </ul>
             </li>
-            <li><a v-on:click="goSobre">Sobre</a></li>
+            <li><a v-on:click="goSobre">Quem somos?</a></li>
             <li><a v-on:click="goContato">Contato</a></li>
             <li>
               <button v-on:click="goLogin" class="bthLogin-popup">Login</button>
@@ -106,21 +106,21 @@
               <span class="icon">
                 <ion-icon name="mail"></ion-icon>
               </span>
-              <input type="email" required />
+              <input v-model="dados_login.email" type="email" required />
               <label>Email</label>
             </div>
             <div class="input-box">
               <span class="icon">
                 <ion-icon name="lock-closed"></ion-icon>
               </span>
-              <input type="password" required />
+              <input v-model="dados_login.password" type="password" required />
               <label>Senha</label>
             </div>
             <div class="remember-forgot">
-              <label><input type="checkbox" required /> Lembrar-me</label>
+              <label><input type="checkbox" /> Lembrar-me</label>
               <a href="#">Esqueci a senha</a>
             </div>
-            <button type="submit" class="bth">Login</button>
+            <button type="submit" class="bth" @click="logar">Login</button>
             <div class="login-register">
               <p>
                 Não tem uma conta?
@@ -139,21 +139,25 @@
               <span class="icon">
                 <ion-icon name="person"></ion-icon>
               </span>
-              <input type="text" required />
+              <input v-model="dados_registro.name" type="text" required />
               <label>Usuário</label>
             </div>
             <div class="input-box">
               <span class="icon">
                 <ion-icon name="mail"></ion-icon>
               </span>
-              <input type="email" required />
+              <input v-model="dados_registro.email" type="email" required />
               <label>Email</label>
             </div>
             <div class="input-box">
               <span class="icon">
                 <ion-icon name="lock-closed"></ion-icon>
               </span>
-              <input type="password" required />
+              <input
+                v-model="dados_registro.password"
+                type="password"
+                required
+              />
               <label>Senha</label>
             </div>
             <div class="remember-forgot">
@@ -162,7 +166,9 @@
                 <a href="terms" class="login-link">termos e condições</a>
               </p>
             </div>
-            <button type="submit" class="bth">Cadastrar</button>
+            <button type="submit" class="bth" @click="registrar">
+              Cadastrar
+            </button>
             <div class="login-register">
               <p>
                 Já tem uma conta?
@@ -179,6 +185,9 @@
 </template>
 
 <script>
+import { login, registro } from "../../services/api/Auth";
+import { setCookie } from "../../utils/cookie";
+
 export default {
   methods: {
     goHome() {
@@ -211,10 +220,53 @@ export default {
       const wrapper = document.querySelector(".wrapper");
       wrapper.classList.remove("active-popup");
     },
+    logar() {
+      event.preventDefault();
+      login(this.dados_login)
+        .then((res) => {
+          console.log(res);
+          setCookie("token", res.data.token, res.data.tokenExpiration);
+          // alert("Logado!");
+          localStorage.setItem("user", JSON.stringify(this.dados_login.email));
+          this.$router.push("/logged");
+        })
+        .catch((err) => {
+          console.log(err);
+          alert("Usuário ou senha incorretos");
+        });
+    },
+    registrar() {
+      event.preventDefault();
+
+      let user = {
+        name: this.dados_registro.name,
+        email: this.dados_registro.email,
+        password: this.dados_registro.password,
+      };
+
+      registro(user)
+        .then((res) => {
+          console.log(res.data);
+          alert("Cadastro realizado com sucesso!");
+          const wrapper = document.querySelector(".wrapper");
+          wrapper.classList.remove("active");
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+    },
   },
   data() {
     return {
-      showDropdown: false,
+      dados_login: {
+        email: "",
+        password: "",
+      },
+      dados_registro: {
+        name: "",
+        email: "",
+        password: "",
+      },
     };
   },
 };
@@ -242,12 +294,12 @@ body {
 
 header {
   position: fixed;
-  top: 0;
+  top: 0px;
   left: 0;
   width: 100%;
   padding: 20px 60px;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
   z-index: 99;
 }
@@ -286,11 +338,11 @@ header {
 }
 
 nav.primary-navigation {
-  margin: 0 auto;
+  margin: 0 0 0 0;
   display: block;
-  padding: 0 0 0 50px;
+  padding: 0 0 0 0px;
   text-align: center;
-  font-size: 16px;
+  font-size: 14px;
 }
 
 nav.primary-navigation ul li button {
@@ -304,7 +356,6 @@ nav.primary-navigation ul li button {
   font-size: 1.1em;
   color: #ffffff;
   font-weight: 500;
-  margin-left: 40px;
   transition: 0.5s;
 }
 
