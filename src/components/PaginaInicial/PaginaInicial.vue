@@ -2,28 +2,66 @@
   <div>
     <head></head>
     <body>
+      <Swiper class="swiper" />
       <header>
-        <h2 class="logo">Sultan</h2>
+        <!-- Cabeçalho -->
+
+        <h2 class="logo" @click="goHome">Sultan</h2>
+
         <div class="search-box">
-          <span class="icon">
-            <ion-icon name="search-outline"></ion-icon>
-          </span>
-          <input type="text" />
+          <form @submit.prevent="searchItems">
+            <span class="icon">
+              <ion-icon name="search-outline"></ion-icon>
+            </span>
+            <input
+              type="text"
+              v-model="searchQuery"
+              placeholder="Pesquise algo..."
+              @input="searchItems"
+            />
+          </form>
+
+          <div v-if="searchResults.length" class="search-results">
+            <ul>
+              <li
+                v-for="item in searchResults"
+                :key="item._id"
+                @click="selectItem(item)"
+              >
+                {{ item.nome }}
+              </li>
+            </ul>
+          </div>
         </div>
+
         <nav role="navigation" class="primary-navigation">
           <ul>
-            <li><a v-on:click="goHome">Projetos</a></li>
             <li>
               <a>Categorias &dtrif;</a>
               <ul class="dropdown">
-                <li><a href="#">Veículos</a></li>
-                <li><a href="#">Supermercado</a></li>
-                <li><a href="#">Tecnologia</a></li>
-                <li><a href="#">Casa e móveis</a></li>
-                <li><a href="#">Esportes e fitness</a></li>
-                <li><a href="#">Construção</a></li>
-                <li><a href="#">Saúde</a></li>
-                <li><a href="#">Moda</a></li>
+                <li @click="goToCategory('Veículos')">
+                  <a href="#">Veículos</a>
+                </li>
+                <li @click="goToCategory('Supermercado')">
+                  <a href="#">Supermercado</a>
+                </li>
+                <li @click="goToCategory('Restaurante')">
+                  <a href="#">Restaurante</a>
+                </li>
+                <li @click="goToCategory('Tecnologia')">
+                  <a href="#">Tecnologia</a>
+                </li>
+                <li @click="goToCategory('Casa e móveis')">
+                  <a href="#">Casa e móveis</a>
+                </li>
+                <li @click="goToCategory('Esportes e fitness')">
+                  <a href="#">Esportes e fitness</a>
+                </li>
+                <li @click="goToCategory('Construção')">
+                  <a href="#">Construção</a>
+                </li>
+                <li @click="goToCategory('Saúde')"><a href="#">Saúde</a></li>
+                <li @click="goToCategory('Moda')"><a href="#">Moda</a></li>
               </ul>
             </li>
             <li><a v-on:click="goSobre">Quem somos?</a></li>
@@ -34,6 +72,8 @@
           </ul>
         </nav>
       </header>
+
+      <!-- Vagalumes -->
       <div class="container">
         <div class="bubbles">
           <span style="--i: 11"></span>
@@ -95,6 +135,8 @@
           <span style="--i: 26"></span>
         </div>
       </div>
+
+      <!-- Tela de fazer login -->
       <div class="wrapper">
         <span v-on:click="iconClose" class="icon-close">
           <ion-icon name="close"></ion-icon>
@@ -132,9 +174,10 @@
           </form>
         </div>
 
+        <!-- Tela de fazer registro -->
         <div class="form-box register">
           <h2>Cadastro</h2>
-          <form action="#">
+          <form action="#" @submit.prevent="registrar">
             <div class="input-box">
               <span class="icon">
                 <ion-icon name="person"></ion-icon>
@@ -166,9 +209,7 @@
                 <a href="terms" class="login-link">termos e condições</a>
               </p>
             </div>
-            <button type="submit" class="bth" @click="registrar">
-              Cadastrar
-            </button>
+            <button type="submit" class="bth">Cadastrar</button>
             <div class="login-register">
               <p>
                 Já tem uma conta?
@@ -180,6 +221,21 @@
           </form>
         </div>
       </div>
+
+      <ion-icon
+        name="scan-outline"
+        class="fullscreen-icon"
+        @click="requestFullscreen"
+        style="
+          position: absolute;
+          bottom: 20px;
+          right: 80px;
+          color: white;
+          font-size: 2em;
+          cursor: pointer;
+          z-index: 2;
+        "
+      ></ion-icon>
     </body>
   </div>
 </template>
@@ -187,11 +243,15 @@
 <script>
 import { login, registro } from "../../services/api/Auth";
 import { setCookie } from "../../utils/cookie";
+import { emitter } from "../Sidebar/eventBus";
+
+import Cookies from "js-cookie";
+import axios from "axios";
 
 export default {
   methods: {
     goHome() {
-      console.log("Go Home");
+      this.$router.push("/logged");
     },
     goContato() {
       console.log("Go Contato");
@@ -235,13 +295,15 @@ export default {
           alert("Usuário ou senha incorretos");
         });
     },
-    registrar() {
+    registrar(event) {
       event.preventDefault();
 
       let user = {
         name: this.dados_registro.name,
         email: this.dados_registro.email,
         password: this.dados_registro.password,
+        telefone: null,
+        descricao: null,
       };
 
       registro(user)
@@ -255,9 +317,53 @@ export default {
           console.error(err);
         });
     },
+    async searchItems() {
+      if (this.searchQuery === "") {
+        this.searchResults = [];
+        return;
+      }
+
+      const token = Cookies.get("token");
+      try {
+        const response = await axios.get(
+          `http://localhost:8081/dados?search=${this.searchQuery}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        this.searchResults = response.data;
+        console.log(response.data);
+      } catch (error) {
+        console.error(error);
+      }
+    },
+    selectItem(item) {
+      emitter.emit("item-selected", item);
+    },
+    goToCategory(category) {
+      this.$router.push({ name: "categorias", params: { category: category } });
+    },
+    requestFullscreen() {
+      if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen();
+      } else if (document.documentElement.mozRequestFullScreen) {
+        // Firefox
+        document.documentElement.mozRequestFullScreen();
+      } else if (document.documentElement.webkitRequestFullscreen) {
+        // Chrome, Safari and Opera
+        document.documentElement.webkitRequestFullscreen();
+      } else if (document.documentElement.msRequestFullscreen) {
+        // IE/Edge
+        document.documentElement.msRequestFullscreen();
+      }
+    },
   },
   data() {
     return {
+      searchQuery: "",
+      searchResults: [],
       dados_login: {
         email: "",
         password: "",
@@ -266,10 +372,16 @@ export default {
         name: "",
         email: "",
         password: "",
+        telefone: null,
+        descricao: null,
       },
     };
   },
 };
+</script>
+
+<script setup>
+import Swiper from "../Swiper/MySwiper.vue";
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
@@ -299,7 +411,7 @@ header {
   width: 100%;
   padding: 20px 60px;
   display: flex;
-  justify-content: flex-start;
+  justify-content: space-evenly;
   align-items: center;
   z-index: 99;
 }
@@ -317,7 +429,6 @@ header {
   height: auto;
   border-bottom: 2px solid #ffffff;
 }
-
 .search-box input {
   width: 100%;
   height: 100%;
@@ -329,12 +440,21 @@ header {
   font-weight: 600;
   padding: 0 35px 0 5px;
 }
-
 .search-box .icon {
   position: absolute;
   right: 8px;
   font-size: 1.2em;
   color: #ffffff;
+}
+.search-results {
+  position: absolute;
+  width: 100%;
+  z-index: 1;
+  background: #ffffff3b;
+  color: #ffffff;
+  font-size: 0.9em;
+  font-weight: 300;
+  padding: 0 35px 0 5px;
 }
 
 nav.primary-navigation {
@@ -448,10 +568,12 @@ ul li ul li a {
   overflow: hidden;
   transform: scale(0);
   transition: transform 0.5s ease, height 0.2s ease;
+  z-index: 1;
 }
 
 .wrapper.active-popup {
   transform: scale(1);
+  z-index: 1;
 }
 
 .wrapper.active {

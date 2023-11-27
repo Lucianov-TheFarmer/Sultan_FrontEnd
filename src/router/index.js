@@ -4,6 +4,8 @@ import HomeView from "../views/HomeView";
 import Sobre from "../views/Sobre.vue";
 import Contato from "../views/Contato.vue";
 import Logged from "../views/Logged.vue";
+import Terms from "../views/Terms.vue";
+import Categorias from "../views/Categorias.vue";
 
 const routes = [
   {
@@ -29,6 +31,16 @@ const routes = [
       requiresAuth: true,
     },
   },
+  {
+    path: "/terms",
+    name: "terms",
+    component: Terms,
+  },
+  {
+    path: "/categorias/:category",
+    name: "categorias",
+    component: Categorias,
+  },
 ];
 
 const router = createRouter({
@@ -40,9 +52,13 @@ router.beforeEach((to, from, next) => {
   if (to.matched.some((record) => record.meta.requiresAuth)) {
     if (!Cookies.get("token")) {
       console.log("Token não encontrado");
-      next(from.path); // redirecionar para a página anterior
+      next("/"); // redirecionar para a página inicial
     } else {
-      next(); // caso contrário, continue normalmente
+      if (to.path === "/logged") {
+        next(); // continuar a navegação para a rota "/logged"
+      } else {
+        next("/logged"); // redirecionar para a rota "/logged"
+      }
     }
   } else {
     next(); // caso contrário, continue normalmente

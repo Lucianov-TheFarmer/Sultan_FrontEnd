@@ -1,7 +1,9 @@
 <template>
   <nav class="nav-container">
-    <Sidebar class="sidebar" />
-    <Swiper class="swiper" />
+    <Sidebar class="sidebar" v-if="isLoggedIn" />
+
+    <!-- Sem swiper aqui -->
+
     <div class="content">
       <head></head>
       <body>
@@ -28,7 +30,7 @@
                 <li
                   v-for="item in searchResults"
                   :key="item._id"
-                  @click="selectItem(item)"
+                  @click="selectCadastro(item)"
                 >
                   {{ item.nome }}
                 </li>
@@ -68,8 +70,13 @@
               </li>
               <li><a v-on:click="goSobre">Quem somos?</a></li>
               <li><a v-on:click="goContato">Contato</a></li>
-              <li>
+              <li v-if="isLoggedIn">
                 <a>Bem vindo, {{ user.name }}</a>
+              </li>
+              <li v-else>
+                <button v-on:click="goLogin" class="bthLogin-popup">
+                  Login
+                </button>
               </li>
             </ul>
           </nav>
@@ -135,6 +142,96 @@
             <span style="--i: 15"></span>
             <span style="--i: 13"></span>
             <span style="--i: 26"></span>
+          </div>
+        </div>
+
+        <!-- Tela de fazer login -->
+        <div class="wrapper" v-if="!isLoggedIn">
+          <span v-on:click="iconClose" class="icon-close">
+            <ion-icon name="close"></ion-icon>
+          </span>
+          <div class="form-box login">
+            <h2>Login</h2>
+            <form action="#">
+              <div class="input-box">
+                <span class="icon">
+                  <ion-icon name="mail"></ion-icon>
+                </span>
+                <input v-model="dados_login.email" type="email" required />
+                <label>Email</label>
+              </div>
+              <div class="input-box">
+                <span class="icon">
+                  <ion-icon name="lock-closed"></ion-icon>
+                </span>
+                <input
+                  v-model="dados_login.password"
+                  type="password"
+                  required
+                />
+                <label>Senha</label>
+              </div>
+              <div class="remember-forgot">
+                <label><input type="checkbox" /> Lembrar-me</label>
+                <a href="#">Esqueci a senha</a>
+              </div>
+              <button type="submit" class="bth" @click="logar">Login</button>
+              <div class="login-register">
+                <p>
+                  Não tem uma conta?
+                  <a v-on:click="goRegister" href="#" class="register-link"
+                    >Cadastrar</a
+                  >
+                </p>
+              </div>
+            </form>
+          </div>
+
+          <!-- Tela de fazer registro -->
+          <div class="form-box register">
+            <h2>Cadastro</h2>
+            <form action="#" @submit.prevent="registrar">
+              <div class="input-box">
+                <span class="icon">
+                  <ion-icon name="person"></ion-icon>
+                </span>
+                <input v-model="dados_registro.name" type="text" required />
+                <label>Usuário</label>
+              </div>
+              <div class="input-box">
+                <span class="icon">
+                  <ion-icon name="mail"></ion-icon>
+                </span>
+                <input v-model="dados_registro.email" type="email" required />
+                <label>Email</label>
+              </div>
+              <div class="input-box">
+                <span class="icon">
+                  <ion-icon name="lock-closed"></ion-icon>
+                </span>
+                <input
+                  v-model="dados_registro.password"
+                  type="password"
+                  required
+                />
+                <label>Senha</label>
+              </div>
+              <div class="remember-forgot">
+                <p>
+                  <input type="checkbox" required /> Concordo com os
+                  <a href="terms" class="login-link">termos e condições</a>
+                </p>
+              </div>
+              <button type="submit" class="bth">Cadastrar</button>
+              <div class="login-register">
+                <p>
+                  Já tem uma conta?
+                  <a v-on:click="goBackLogin" href="#" class="login-link"
+                    >Login</a
+                  >
+                </p>
+              </div>
+            </form>
           </div>
         </div>
 
@@ -534,6 +631,92 @@
           </div>
         </div>
 
+        <!-- Cards selecionáveis -->
+        <div class="card-container">
+          <div
+            class="card"
+            v-for="(data, index) in filteredDados"
+            :key="index"
+            @mouseover="hoveredIndex = index"
+            @mouseout="hoveredIndex = null"
+            @click="selectCadastro(data)"
+          >
+            <div v-show="hoveredIndex === index" class="image-name">
+              {{ data.nome }}
+            </div>
+            <img :src="'http://localhost:8081/' + data.imagemPrincipal" />
+          </div>
+        </div>
+
+        <!-- Ver cadastro -->
+        <div
+          class="wrapper_verCadastro"
+          v-if="showWrapper"
+          :class="{ 'active-popup': showWrapper }"
+        >
+          <span v-on:click="iconClose_verCadastro" class="icon-close">
+            <ion-icon name="close"></ion-icon>
+          </span>
+
+          <div class="divImagem">
+            <my-swiper
+              v-if="
+                selectedCadastro && selectedCadastro.outrasImagens.length > 0
+              "
+              :centeredSlides="true"
+              :spaceBetween="30"
+              :autoplay="{ delay: 2500, disableOnInteraction: false }"
+              :pagination="{ clickable: true }"
+              :simulateTouch="false"
+              :navigation="true"
+              :loop="true"
+              :modules="modules"
+              class="mySwiper2"
+            >
+              <swiper-slide
+                v-for="(image, index) in selectedCadastro.outrasImagens"
+                :key="index"
+                class="swiper-slide"
+              >
+                <img
+                  :src="'http://localhost:8081/' + image"
+                  style="width: 300px; border-radius: 8px"
+                />
+              </swiper-slide>
+            </my-swiper>
+            <img
+              v-if="
+                selectedCadastro && selectedCadastro.outrasImagens.length === 0
+              "
+              :src="'http://localhost:8081/' + selectedCadastro.imagemPrincipal"
+              style="width: 300px; height: 300px"
+            />
+          </div>
+
+          <div class="divPerfil">
+            <div class="divConteudo">
+              <strong> Nome: </strong>
+              <a> {{ selectedCadastro.nome }} </a>
+            </div>
+            <div class="divConteudo">
+              <strong> Endereço: </strong>
+              <a> {{ selectedCadastro.endereco }} </a>
+            </div>
+            <div class="divConteudo">
+              <strong> Descrição: </strong>
+              <a> {{ selectedCadastro.descricao }} </a>
+            </div>
+            <div class="divConteudo">
+              <strong> Contato: </strong>
+              <a> {{ selectedCadastro.telefone }} </a>
+            </div>
+            <div class="divConteudo">
+              <strong> Categoria: </strong>
+              <a> {{ selectedCadastro.categoria }} </a>
+            </div>
+          </div>
+        </div>
+
         <ion-icon
           name="scan-outline"
           class="fullscreen-icon"
@@ -553,13 +736,27 @@
   </nav>
 </template>
 
+<script setup>
+import Sidebar from "../components/Sidebar/Sidebar.vue";
+const isLoggedIn = !!Cookies.get("token");
+</script>
+
 <script>
 import Cookies from "js-cookie";
 import axios from "axios";
 import { emitter } from "../components/Sidebar/eventBus";
+import { login, registro } from "../services/api/Auth";
+import { setCookie } from "../utils/cookie";
+import { Pagination, Navigation } from "swiper/modules";
+import { Swiper as MySwiper, SwiperSlide } from "swiper/vue";
+
+import "swiper/css";
+import "swiper/swiper-bundle.css";
+import "swiper/css/navigation";
 
 export default {
-  name: "LoggedView",
+  name: "CategoriasView",
+
   data() {
     return {
       user: {},
@@ -587,6 +784,22 @@ export default {
         password: "",
       },
       cadastros: [],
+      dados_login: {
+        email: "",
+        password: "",
+      },
+      dados_registro: {
+        name: "",
+        email: "",
+        password: "",
+        telefone: null,
+        descricao: null,
+      },
+      selectedCadastro: null,
+      showWrapper: false,
+      hoveredIndex: null,
+      dados: [],
+      modules: [Pagination, Navigation],
     };
   },
   async mounted() {
@@ -608,17 +821,20 @@ export default {
     } catch (error) {
       console.error(error);
     }
+    fetch("http://localhost:8081/dados")
+      .then((response) => response.json())
+      .then((data) => {
+        this.dados = data;
+      });
   },
   methods: {
     goHome() {
       this.$router.push("/logged");
     },
     goContato() {
-      console.log("Go Contato");
       this.$router.push("/contato");
     },
     goSobre() {
-      console.log("Go Contato");
       this.$router.push("/sobre");
     },
     iconClose_verPerfil() {
@@ -651,6 +867,64 @@ export default {
       );
       wrapper_verPerfil.classList.remove("active-popup");
     },
+    // Funções para o usuários deslogado
+    goLogin() {
+      const wrapper = document.querySelector(".wrapper");
+      wrapper.classList.add("active-popup");
+    },
+    goForgotPassword() {
+      console.log("Forgot password");
+    },
+    goRegister() {
+      const wrapper = document.querySelector(".wrapper");
+      wrapper.classList.add("active");
+    },
+    goBackLogin() {
+      const wrapper = document.querySelector(".wrapper");
+      wrapper.classList.remove("active");
+    },
+    iconClose() {
+      const wrapper = document.querySelector(".wrapper");
+      wrapper.classList.remove("active-popup");
+    },
+    logar() {
+      event.preventDefault();
+      login(this.dados_login)
+        .then((res) => {
+          console.log(res);
+          setCookie("token", res.data.token, res.data.tokenExpiration);
+          // alert("Logado!");
+          localStorage.setItem("user", JSON.stringify(this.dados_login.email));
+          this.$router.push("/logged");
+        })
+        .catch((err) => {
+          console.log(err);
+          alert("Usuário ou senha incorretos");
+        });
+    },
+    registrar(event) {
+      event.preventDefault();
+
+      let user = {
+        name: this.dados_registro.name,
+        email: this.dados_registro.email,
+        password: this.dados_registro.password,
+        telefone: null,
+        descricao: null,
+      };
+
+      registro(user)
+        .then((res) => {
+          console.log(res.data);
+          alert("Cadastro realizado com sucesso!");
+          const wrapper = document.querySelector(".wrapper");
+          wrapper.classList.remove("active");
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+    },
+    // Funções para o usuário logado
     salvarEditarPerfil() {
       const token = Cookies.get("token");
       const formData = new FormData();
@@ -936,11 +1210,35 @@ export default {
         console.error(error);
       }
     },
-    selectItem(item) {
-      emitter.emit("item-selected", item);
-    },
     goToCategory(category) {
       this.$router.push({ name: "categorias", params: { category: category } });
+    },
+    // Interagir com o backend
+    fetchCadastroData(cadastroId) {
+      fetch(`http://localhost:8081/dados/${cadastroId}`)
+        .then((response) => response.json())
+        .then((data) => {
+          this.formNovoCadastro = data;
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+        });
+    },
+    // Cards selecionáveis
+    selectCadastro(cadastro) {
+      this.selectedCadastro = cadastro;
+      this.showWrapper = true;
+      this.fetchCadastroData(cadastro._id);
+      emitter.emit("close-other-wrappers");
+    },
+    iconClose_verCadastro() {
+      this.showWrapper = false;
+    },
+    showName(index) {
+      this.hoveredIndex = index;
+    },
+    hideName() {
+      this.hoveredIndex = null;
     },
     requestFullscreen() {
       if (document.documentElement.requestFullscreen) {
@@ -957,12 +1255,20 @@ export default {
       }
     },
   },
+  computed: {
+    categoriaAtual() {
+      return this.$route.params.category;
+    },
+    filteredDados() {
+      if (!this.categoriaAtual) {
+        return this.dados;
+      }
+      return this.dados.filter(
+        (data) => data.categoria === this.categoriaAtual
+      );
+    },
+  },
 };
-</script>
-
-<script setup>
-import Sidebar from "../components/Sidebar/Sidebar.vue";
-import Swiper from "../components/Swiper/MySwiper.vue";
 </script>
 
 <style scoped>
@@ -1184,6 +1490,182 @@ nav.primary-navigation ul li ul li a:hover {
 }
 ul li ul li a {
   transition: all 0.5s ease;
+}
+
+/* Wrapper das telas de login e registro */
+.wrapper {
+  position: relative;
+  width: 400px;
+  height: 440px;
+  background: transparent;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  border-radius: 20px;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  transform: scale(0);
+  transition: transform 0.5s ease, height 0.2s ease;
+  z-index: 1;
+}
+
+.wrapper.active-popup {
+  transform: scale(1);
+  z-index: 1;
+}
+
+.wrapper.active {
+  height: 520px;
+}
+
+.wrapper .form-box {
+  width: 100%;
+  padding: 40px;
+}
+
+.wrapper .form-box.login {
+  transition: transfrom 0.18s ease;
+  transform: translateX(0);
+}
+
+.wrapper.active .form-box.login {
+  transition: none;
+  transform: translateX(-400px);
+}
+
+.wrapper .form-box.register {
+  position: absolute;
+  transition: none;
+  transform: translateX(400px);
+}
+
+.wrapper.active .form-box.register {
+  transition: transfrom 0.18s ease;
+  transform: translateX(0);
+}
+
+.wrapper .icon-close {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 45px;
+  height: 45px;
+  background: #162938;
+  font-size: 2em;
+  color: #ffffff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-bottom-left-radius: 20px;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.form-box h2 {
+  font-size: 2em;
+  color: #ffffff;
+  text-align: center;
+}
+
+.input-box {
+  position: relative;
+  width: 100%;
+  height: 50px;
+  border-bottom: 2px solid #ffffff;
+  margin: 30px 0;
+}
+
+.input-box label {
+  position: absolute;
+  top: 50%;
+  left: 5px;
+  transform: translateY(-50%);
+  font-size: 1em;
+  color: #ffffff;
+  font-weight: 500;
+  pointer-events: none;
+  transition: 0.5s;
+}
+
+.input-box input:focus ~ label,
+.input-box input:valid ~ label {
+  top: -5px;
+}
+
+.input-box input {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 1em;
+  color: #ffffff;
+  font-weight: 600;
+  padding: 0 35px 0 5px;
+}
+
+.input-box .icon {
+  position: absolute;
+  right: 8px;
+  font-size: 1.2em;
+  color: #ffffff;
+  line-height: 57px;
+}
+
+.remember-forgot {
+  font-size: 0.9em;
+  color: #ffffff;
+  font-weight: 500;
+  margin: -15px 0 15px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.remember-forgot label input {
+  accent-color: #ffffff;
+  margin-right: 3px;
+}
+
+.remember-forgot a {
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.remember-forgot a:hover {
+  text-decoration: underline;
+}
+
+.bth {
+  width: 100%;
+  height: 45px;
+  background: #162938;
+  border: none;
+  outline: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1em;
+  color: #ffffff;
+  font-weight: 500;
+}
+
+.login-register {
+  font-size: 0.9em;
+  color: #ffffff;
+  text-align: center;
+  font-weight: 500;
+  margin: 25px 0 10px;
+}
+
+.login-register p a {
+  color: #ffffff;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.login-register p a:hover {
+  text-decoration: underline;
 }
 /* Wrapper ver perfil */
 .wrapper_verPerfil {
@@ -2158,5 +2640,151 @@ ul li ul li a {
   border-bottom-left-radius: 20px;
   cursor: pointer;
   z-index: 1;
+}
+
+/* Cards selecionáveis */
+.card-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  width: 85%;
+}
+.card {
+  margin-bottom: 8px;
+  margin-right: 8px;
+  width: 200px;
+  height: 200px;
+  position: relative;
+}
+.card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.image-name {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  padding: 10px;
+  text-align: center;
+}
+.wrapper_verCadastro {
+  width: 800px;
+  height: 440px;
+  padding: 30px;
+  background: rgba(255, 255, 255, 0.45);
+  box-shadow: 0px 0px 10px 1px rgba(0, 0, 0, 0.5);
+  border-radius: 20px;
+  overflow: hidden;
+  border: 2px rgba(255, 255, 255, 0.5) solid;
+  backdrop-filter: blur(30px);
+  justify-content: center;
+  align-items: flex-start;
+  display: inline-flex;
+  flex-direction: row;
+  transform: scale(0);
+  transition: transform 0.5s ease, height 0.2s ease;
+  position: absolute;
+  z-index: 1;
+}
+.wrapper_verCadastro.active-popup {
+  transform: scale(1);
+  position: absolute;
+}
+.wrapper_verCadastro.active {
+  height: 520px;
+}
+.wrapper_verCadastro .divImagem {
+  width: 300px;
+  align-self: stretch;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  display: inline-flex;
+}
+.wrapper_verCadastro .divPerfil {
+  width: 440px;
+  align-self: stretch;
+  padding-left: 17px;
+  padding-right: 17px;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: flex-start;
+  gap: 15px;
+  display: inline-flex;
+}
+.wrapper_verCadastro .divPerfil h2 {
+  width: 406px;
+  height: 55px;
+  text-align: center;
+  color: white;
+  font-size: 2em;
+  font-family: Poppins;
+  font-weight: 400;
+  word-wrap: break-word;
+}
+.wrapper_verCadastro .divPerfil .divConteudo {
+  align-self: stretch;
+  height: 58px;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 10px;
+  display: inline-flex;
+  padding-left: 10px;
+}
+.wrapper_verCadastro .divPerfil .divConteudo strong {
+  text-align: center;
+  color: black;
+  font-size: 1.1em;
+  font-family: Poppins;
+  font-weight: 400;
+  word-wrap: break-word;
+}
+.wrapper_verCadastro .divPerfil .divConteudo a {
+  color: black;
+  font-size: 1em;
+  font-family: Poppins;
+  font-weight: 300;
+  word-wrap: break-word;
+}
+.wrapper_verCadastro .icon-close {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 45px;
+  height: 45px;
+  background: #162938;
+  font-size: 2em;
+  color: #ffffff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-bottom-left-radius: 20px;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.mySwiper2 {
+  width: 300px;
+  height: 300px;
+  background-color: rgba(255, 255, 255, 0);
+}
+
+.swiper-slide {
+  background-position: center;
+  background-size: cover;
+  width: 20%;
+  height: 300px;
+}
+.swiper-slide img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 </style>

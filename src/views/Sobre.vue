@@ -21,34 +21,21 @@
           background: rgba(0, 0, 0, 0.5);
           pointer-events: none;
         "
-      >
-        <h2
-          class="fade-in"
+      ></div>
+      <div class="logo">
+        <img
+          src="../assets/logoCompJunior.svg"
+          class="fade-in-delayed"
           style="
-            color: white;
-            right: 0;
-            position: absolute;
-            font-family: 'Poppins';
-            font-size: 3em;
-            margin: 20px 20px 10px 10px;
+            bottom: 60px;
+            left: 30px;
+            width: 75px;
+            height: 75px;
+            opacity: 0;
           "
-        >
-          Mais do que uma empresa. Somos Comp Júnior.
-        </h2>
+        />
+        <a class="contato" href="/contato" v-on:click="goContato">Contato</a>
       </div>
-      <img
-        src="../assets/logoCompJunior.svg"
-        class="fade-in-delayed"
-        style="
-          position: absolute;
-          bottom: 60px;
-          left: 30px;
-          width: 75px;
-          height: 75px;
-          opacity: 0;
-        "
-      />
-      <a class="contato" href="/contato" v-on:click="goContato">Contato</a>
     </div>
   </div>
 </template>
@@ -60,7 +47,7 @@ export default {
 };
 </script>
 
-<style>
+<style scoped>
 .fade-in {
   animation: fadeIn 12s;
 }
@@ -79,7 +66,6 @@ export default {
 }
 
 .contato {
-  position: absolute;
   bottom: 20px;
   left: 35px;
   color: rgba(255, 255, 255, 0.4);
@@ -88,5 +74,14 @@ export default {
   text-decoration: none;
   opacity: 0;
   animation: fadeIn 20s 5s forwards;
+}
+
+.logo {
+  position: absolute;
+  bottom: 30px;
+  left: 25px;
+  flex-direction: column;
+  display: flex;
+  align-items: center;
 }
 </style>

@@ -5,7 +5,12 @@
     </div> -->
 
     <div class="menu-toggle-wrap">
-      <h3 class="h3">Menu</h3>
+      <img
+        class="logo-sidebar"
+        src="../../assets/logoCompJunior.svg"
+        v-show="is_expanded"
+      />
+      <h3 class="h3">Made by Comp</h3>
       <button class="menu-toggle" @click="ToggleMenu">
         <span class="material-icons"> keyboard_double_arrow_right </span>
       </button>
@@ -43,7 +48,6 @@
 
 <script setup>
 import { ref } from "vue";
-import logoURL from "../../assets/logo.png";
 
 const is_expanded = ref(localStorage.getItem("is_expanded") === "true");
 
@@ -54,8 +58,16 @@ const ToggleMenu = () => {
 </script>
 
 <script>
+import { emitter } from "./eventBus";
+
 export default {
   name: "SidebarComponent",
+  created() {
+    emitter.on("close-other-wrappers", this.closeWrapper);
+  },
+  beforeUnmount() {
+    emitter.off("close-other-wrappers", this.closeWrapper);
+  },
   methods: {
     abrirPerfil() {
       const wrapper = document.querySelector(".wrapper_verPerfil");
@@ -75,6 +87,16 @@ export default {
         ".wrapper_editarCadastros"
       );
       wrapper_editarCadastros.classList.remove("active-popup");
+      const wrapper_configurações = document.querySelector(
+        ".wrapper_editarConfigurações"
+      );
+      wrapper_configurações.classList.remove("active-popup");
+      const wrapper_editarCadastroEspecifico = document.querySelector(
+        ".wrapper_editarCadastroEspecifico"
+      );
+      wrapper_editarCadastroEspecifico.classList.remove("active-popup");
+
+      emitter.emit("close-myswiper-wrapper");
     },
 
     editarPerfil() {
@@ -93,6 +115,15 @@ export default {
         ".wrapper_editarCadastros"
       );
       wrapper_editarCadastros.classList.remove("active-popup");
+      const wrapper_configurações = document.querySelector(
+        ".wrapper_editarConfigurações"
+      );
+      wrapper_configurações.classList.remove("active-popup");
+      const wrapper_editarCadastroEspecifico = document.querySelector(
+        ".wrapper_editarCadastroEspecifico"
+      );
+      wrapper_editarCadastroEspecifico.classList.remove("active-popup");
+      emitter.emit("close-myswiper-wrapper");
     },
 
     novoCadastro() {
@@ -111,6 +142,16 @@ export default {
         ".wrapper_editarCadastros"
       );
       wrapper_editarCadastros.classList.remove("active-popup");
+      const wrapper_configurações = document.querySelector(
+        ".wrapper_editarConfigurações"
+      );
+      wrapper_configurações.classList.remove("active-popup");
+
+      const wrapper_editarCadastroEspecifico = document.querySelector(
+        ".wrapper_editarCadastroEspecifico"
+      );
+      wrapper_editarCadastroEspecifico.classList.remove("active-popup");
+      emitter.emit("close-myswiper-wrapper");
     },
 
     editarCadastros() {
@@ -129,8 +170,71 @@ export default {
         ".wrapper_novoCadastro"
       );
       wrapper_novoCadastro.classList.remove("active-popup");
+      const wrapper_configurações = document.querySelector(
+        ".wrapper_editarConfigurações"
+      );
+      wrapper_configurações.classList.remove("active-popup");
+      const wrapper_editarCadastroEspecifico = document.querySelector(
+        ".wrapper_editarCadastroEspecifico"
+      );
+      wrapper_editarCadastroEspecifico.classList.remove("active-popup");
+      emitter.emit("close-myswiper-wrapper");
     },
-    abrirConfiguracoes() {},
+
+    abrirConfiguracoes() {
+      const wrapper = document.querySelector(".wrapper_editarConfigurações");
+      wrapper.classList.add("active-popup");
+
+      const wrapper_verPerfil = document.querySelector(".wrapper_verPerfil");
+      wrapper_verPerfil.classList.remove("active-popup");
+
+      const wrapper_editarPerfil = document.querySelector(
+        ".wrapper_editarPerfil"
+      );
+      wrapper_editarPerfil.classList.remove("active-popup");
+
+      const wrapper_novoCadastro = document.querySelector(
+        ".wrapper_novoCadastro"
+      );
+      wrapper_novoCadastro.classList.remove("active-popup");
+
+      const wrapper_editarCadastros = document.querySelector(
+        ".wrapper_editarCadastros"
+      );
+      wrapper_editarCadastros.classList.remove("active-popup");
+
+      const wrapper_editarCadastroEspecifico = document.querySelector(
+        ".wrapper_editarCadastroEspecifico"
+      );
+      wrapper_editarCadastroEspecifico.classList.remove("active-popup");
+      emitter.emit("close-myswiper-wrapper");
+    },
+    closeWrapper() {
+      const wrapper_verPerfil = document.querySelector(".wrapper_verPerfil");
+      wrapper_verPerfil.classList.remove("active-popup");
+      const wrapper_editarPerfil = document.querySelector(
+        ".wrapper_editarPerfil"
+      );
+      wrapper_editarPerfil.classList.remove("active-popup");
+
+      const wrapper_novoCadastro = document.querySelector(
+        ".wrapper_novoCadastro"
+      );
+      wrapper_novoCadastro.classList.remove("active-popup");
+
+      const wrapper_editarCadastros = document.querySelector(
+        ".wrapper_editarCadastros"
+      );
+      wrapper_editarCadastros.classList.remove("active-popup");
+      const wrapper_configurações = document.querySelector(
+        ".wrapper_editarConfigurações"
+      );
+      wrapper_configurações.classList.remove("active-popup");
+      const wrapper_editarCadastroEspecifico = document.querySelector(
+        ".wrapper_editarCadastroEspecifico"
+      );
+      wrapper_editarCadastroEspecifico.classList.remove("active-popup");
+    },
   },
 };
 </script>
@@ -164,6 +268,12 @@ button {
   }
 }
 
+.logo-sidebar {
+  width: 20px;
+  height: 20px;
+  margin: 0px 0px 0px 5px;
+}
+
 aside {
   display: flex;
   flex-direction: column;
@@ -195,12 +305,15 @@ aside .menu-toggle-wrap {
 }
 
 aside .menu-toggle-wrap .h3 {
-  width: 0;
+  width: fit-content;
+  position: absolute;
+  right: 30%;
 }
 
 aside .menu-toggle-wrap .menu-toggle {
   transition: 0.2s ease-in-out;
   rotate: 180deg;
+  margin-right: 0;
 }
 aside .menu-toggle-wrap .menu-toggle .material-icons {
   font-size: 2rem;
@@ -219,7 +332,7 @@ aside .button .text {
 }
 aside h3 {
   color: #64748b;
-  font-size: 0.875rem;
+  font-size: 0.7rem;
   margin-bottom: 0.5rem;
   text-transform: uppercase;
 }
